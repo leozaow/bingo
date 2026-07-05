@@ -301,13 +301,50 @@
       text-transform: none;
     }
 
+    .recent-stats {
+      display: none;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .recent-stat {
+      min-height: 24px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.075);
+      padding: 3px 7px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .recent-stat span {
+      color: var(--muted);
+      font-size: .54rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 900;
+    }
+
+    .recent-stat strong {
+      color: var(--text);
+      font-size: .72rem;
+      font-weight: 1000;
+      letter-spacing: -.02em;
+    }
+
     .compact-sequence {
       min-height: 0;
       padding: 0;
       border: 0;
       background: transparent;
-      flex-wrap: wrap;
-      align-content: start;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: flex-end;
       gap: 5px;
       overflow: hidden;
       scrollbar-width: none;
@@ -543,7 +580,7 @@
       }
 
       html:not(.force-portrait) .stage {
-        grid-template-rows: minmax(0, 1fr) auto auto auto;
+        grid-template-rows: minmax(0, 1fr) auto auto;
       }
 
       html:not(.force-portrait) .ball-wrap {
@@ -562,22 +599,11 @@
       }
 
       html:not(.force-portrait) .mini-status {
-        gap: 5px;
+        display: none;
       }
 
-      html:not(.force-portrait) .chip {
-        min-height: 35px;
-        border-radius: 11px;
-        padding: 4px;
-      }
-
-      html:not(.force-portrait) .chip span {
-        font-size: .5rem;
-      }
-
-      html:not(.force-portrait) .chip strong {
-        font-size: .8rem;
-        margin-top: 3px;
+      html:not(.force-portrait) .recent-stats {
+        display: none;
       }
 
       html:not(.force-portrait) .controls {
@@ -593,19 +619,45 @@
       }
 
       html:not(.force-portrait) .recent-panel {
-        display: grid;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 38px;
+        padding: 5px 7px;
+        border-radius: 14px;
+      }
+
+      html:not(.force-portrait) .recent-head {
+        flex: 0 0 auto;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: .72rem;
+        white-space: nowrap;
+      }
+
+      html:not(.force-portrait) .recent-head strong {
+        display: none;
+      }
+
+      html:not(.force-portrait) .compact-sequence {
+        flex: 1 1 auto;
+        width: auto;
+        height: 29px;
+        align-items: center;
+        justify-content: flex-end;
       }
 
       html:not(.force-portrait) .compact-sequence .seq-num {
-        min-width: 27px;
-        height: 27px;
-        font-size: .76rem;
+        min-width: 26px;
+        height: 26px;
+        font-size: .72rem;
         box-shadow: inset 0 -2px 0 rgba(7, 17, 31, .12);
       }
 
       html:not(.force-portrait) .compact-sequence .empty-sequence {
-        font-size: .76rem;
+        font-size: .72rem;
         padding-left: 0;
+        margin-left: auto;
       }
 
       html:not(.force-portrait) .history {
@@ -660,15 +712,21 @@
       }
 
       html:not(.force-portrait) .recent-panel {
-        padding: 6px;
-        gap: 5px;
-        border-radius: 14px;
+        padding: 4px 6px;
+        gap: 6px;
+        border-radius: 12px;
+        min-height: 32px;
+      }
+
+      html:not(.force-portrait) .compact-sequence {
+        height: 24px;
+        gap: 4px;
       }
 
       html:not(.force-portrait) .compact-sequence .seq-num {
-        min-width: 24px;
-        height: 24px;
-        font-size: .68rem;
+        min-width: 22px;
+        height: 22px;
+        font-size: .64rem;
       }
     }
   </style>
@@ -700,7 +758,15 @@
         </section>
 
         <section class="recent-panel" aria-label="Últimos números sorteados">
-          <div class="recent-head"><span>Últimos</span><strong id="compactLastInfo">–</strong></div>
+          <div class="recent-head">
+            <span>Últimos</span>
+            <div class="recent-stats" aria-label="Resumo compacto do sorteio">
+              <div class="recent-stat"><span>Sorteados</span><strong id="compactDrawnCount">0/90</strong></div>
+              <div class="recent-stat"><span>Restam</span><strong id="compactRemainingCount">90</strong></div>
+              <div class="recent-stat"><span>Auto</span><strong id="compactAutoState">Não</strong></div>
+            </div>
+            <strong id="compactLastInfo">–</strong>
+          </div>
           <div class="sequence compact-sequence" id="compactSequence" aria-label="Últimos números sorteados"></div>
         </section>
       </section>
@@ -732,6 +798,9 @@
     const drawnCountEl = document.getElementById('drawnCount');
     const remainingCountEl = document.getElementById('remainingCount');
     const autoStateEl = document.getElementById('autoState');
+    const compactDrawnCountEl = document.getElementById('compactDrawnCount');
+    const compactRemainingCountEl = document.getElementById('compactRemainingCount');
+    const compactAutoStateEl = document.getElementById('compactAutoState');
     const lastInfoEl = document.getElementById('lastInfo');
     const drawButtonEl = document.getElementById('drawButton');
     const autoButtonEl = document.getElementById('autoButton');
@@ -784,6 +853,8 @@
         orientationToggleEl.textContent = '↔ Paisagem';
         orientationToggleEl.classList.toggle('active', layoutPreference === 'landscape');
       }
+
+      requestAnimationFrame(renderSequence);
     }
 
     async function toggleOrientationPreference() {
@@ -1007,12 +1078,15 @@
       const drawn = state.sequence.length;
       drawnCountEl.textContent = `${drawn}/${TOTAL}`;
       remainingCountEl.textContent = `${TOTAL - drawn}`;
+      compactDrawnCountEl.textContent = `${drawn}/${TOTAL}`;
+      compactRemainingCountEl.textContent = `${TOTAL - drawn}`;
       lastInfoEl.textContent = state.current ? `Último: ${state.current}` : '';
     }
 
     function renderAutoState() {
       if (!autoEnabled) {
         autoStateEl.textContent = 'Não';
+        compactAutoStateEl.textContent = 'Não';
         autoButtonEl.textContent = 'Auto 7s';
         autoButtonEl.classList.remove('auto-on');
         return;
@@ -1021,20 +1095,29 @@
       autoButtonEl.classList.add('auto-on');
       if (isRolling || !nextAutoAt) {
         autoStateEl.textContent = 'Sim';
+        compactAutoStateEl.textContent = 'Sim';
         autoButtonEl.textContent = 'Parar auto';
         return;
       }
 
       const seconds = Math.max(0, Math.ceil((nextAutoAt - Date.now()) / 1000));
       autoStateEl.textContent = `${seconds}s`;
+      compactAutoStateEl.textContent = `${seconds}s`;
       autoButtonEl.textContent = 'Parar auto';
     }
 
     function renderSequence() {
       fillSequence(sequenceEl, state.sequence, 'Nenhum número sorteado ainda', true);
-      const compactItems = state.sequence.slice(-12);
-      fillSequence(compactSequenceEl, compactItems, 'Nenhum número ainda', false);
+      fillCompactSequence();
       compactLastInfoEl.textContent = state.current ? `#${state.current}` : '–';
+    }
+
+    function fillCompactSequence() {
+      const width = compactSequenceEl.clientWidth || 260;
+      const estimatedItemWidth = document.documentElement.classList.contains('is-landscape-layout') ? 31 : 42;
+      const maxVisible = Math.max(1, Math.min(12, Math.floor(width / estimatedItemWidth)));
+      const recentNumbers = state.sequence.slice(-maxVisible);
+      fillSequence(compactSequenceEl, recentNumbers, 'Nenhum número ainda', false);
     }
 
     function fillSequence(container, numbers, emptyText, shouldScroll) {
