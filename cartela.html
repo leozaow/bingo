@@ -540,7 +540,16 @@
     orientationToggleEl.addEventListener('click', toggleOrientationPreference);
 
     document.getElementById('copyLink').addEventListener('click', copyCurrentLink);
-    document.getElementById('clearMarks').addEventListener('click', () => {
+    document.getElementById('clearMarks').addEventListener('click', confirmClearMarks);
+    document.getElementById('newCard').addEventListener('click', confirmNewCard);
+
+    function confirmClearMarks() {
+      const ok = window.confirm('Limpar as marcações desta cartela?\n\nA cartela será mantida, mas todos os números marcados serão desmarcados.');
+      if (!ok) return;
+      clearMarks();
+    }
+
+    function clearMarks() {
       state.marked = [];
       state.updatedAt = new Date().toISOString();
       lastCompletedRows = 0;
@@ -548,8 +557,15 @@
       saveState();
       render();
       showToast('Marcações limpas');
-    });
-    document.getElementById('newCard').addEventListener('click', () => {
+    }
+
+    function confirmNewCard() {
+      const ok = window.confirm('Gerar uma nova cartela?\n\nA cartela atual e as marcações serão substituídas.');
+      if (!ok) return;
+      newCard();
+    }
+
+    function newCard() {
       state = createState();
       lastCompletedRows = 0;
       lastFullCard = false;
@@ -557,7 +573,7 @@
       clearHash();
       render();
       showToast('Nova cartela');
-    });
+    }
 
     window.addEventListener('hashchange', () => {
       const shared = readStateFromHash();
