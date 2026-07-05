@@ -16,10 +16,6 @@ Projeto estático para brincar de bingo 90 bolas sem cadastro e sem backend.
 - localStorage
 - GitHub Pages
 
-## Como publicar no GitHub Pages
-
-Suba os três arquivos na raiz do repositório e ative o GitHub Pages em `Settings > Pages`, usando a branch `main` e a pasta `/root`.
-
 ## Observação
 
 A persistência é local por navegador/dispositivo. Se o usuário limpar os dados do navegador, as informações salvas localmente poderão ser apagadas.
