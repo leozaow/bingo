@@ -4,932 +4,166 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111f" />
-  <title>Cartela de Bingo</title>
+  <title>Bingo em Casa</title>
   <style>
     :root {
       --bg: #07111f;
       --bg-2: #0f1b2f;
-      --panel: rgba(255, 255, 255, .085);
-      --panel-2: rgba(255, 255, 255, .12);
+      --panel: rgba(255, 255, 255, .09);
+      --panel-2: rgba(255, 255, 255, .14);
       --line: rgba(255, 255, 255, .14);
       --text: #f8fafc;
       --muted: #b7c4d8;
-      --cell: #f8fafc;
-      --cell-ink: #07111f;
-      --blank: rgba(255, 255, 255, .22);
-      --marked: #22c55e;
-      --marked-ink: #052e16;
-      --gold: #facc15;
-      --danger: #ef4444;
+      --accent: #22c55e;
+      --accent-ink: #052e16;
+      --blue: #38bdf8;
       --shadow: 0 20px 50px rgba(0, 0, 0, .32);
-      --radius: 24px;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-    html { height: 100%; }
+    html { min-height: 100%; }
 
     body {
       margin: 0;
-      min-height: 100%;
+      min-height: 100vh;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
       background:
         radial-gradient(circle at 50% -10%, #203b66 0, rgba(32, 59, 102, .42) 32%, transparent 63%),
         linear-gradient(180deg, var(--bg-2), var(--bg));
-      display: flex;
-      justify-content: center;
-      padding: max(12px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(92px, calc(80px + env(safe-area-inset-bottom))) max(8px, env(safe-area-inset-left));
-      overflow-x: hidden;
+      display: grid;
+      place-items: center;
+      padding: max(20px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
     }
 
     main {
-      width: min(100%, 620px);
+      width: min(100%, 740px);
       display: grid;
-      gap: 12px;
-      align-content: start;
+      gap: 22px;
+      text-align: center;
     }
 
     h1 {
       margin: 0;
-      text-align: center;
-      font-size: clamp(1.7rem, 8.8vw, 3rem);
-      line-height: .96;
-      letter-spacing: -.055em;
-      font-weight: 950;
-      text-wrap: balance;
-    }
-
-    .topbar {
-      position: relative;
-      display: grid;
-      place-items: center;
-      min-height: 42px;
-    }
-
-    .orientation-toggle {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      translate: 0 -50%;
-      min-height: 32px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0 10px;
-      color: var(--muted);
-      background: rgba(255, 255, 255, .09);
-      font: 900 clamp(.66rem, 2.8vw, .8rem) / 1 ui-sans-serif, system-ui, sans-serif;
-      cursor: pointer;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, .14);
-      backdrop-filter: blur(16px);
-      opacity: .72;
-      transition: opacity .16s ease, transform .08s ease, background .16s ease, color .16s ease;
-    }
-
-    .orientation-toggle.active {
-      opacity: 1;
-      color: var(--text);
-      background: rgba(255, 255, 255, .16);
-    }
-
-    .orientation-toggle:active { transform: scale(.98); }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .chip {
-      min-height: 52px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      border-radius: 16px;
-      padding: 8px 7px;
-      display: grid;
-      align-content: center;
-      justify-items: center;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, .13);
-      backdrop-filter: blur(16px);
-    }
-
-    .chip span {
-      color: var(--muted);
-      font-size: clamp(.64rem, 2.7vw, .78rem);
-      font-weight: 800;
-      line-height: 1;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-
-    .chip strong {
-      margin-top: 5px;
-      color: var(--text);
-      font-size: clamp(.98rem, 4.7vw, 1.45rem);
-      line-height: 1;
+      font-size: clamp(2.1rem, 10vw, 4.4rem);
+      line-height: .92;
+      letter-spacing: -.07em;
       font-weight: 950;
     }
 
-    .chip.win {
-      background: rgba(34, 197, 94, .20);
-      border-color: rgba(34, 197, 94, .50);
+    .subtitle {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: clamp(.98rem, 3.6vw, 1.2rem);
+      font-weight: 750;
     }
 
-    .chip.bingo {
-      background: rgba(250, 204, 21, .20);
-      border-color: rgba(250, 204, 21, .65);
+    .choices {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
 
-    .board-shell {
+    .choice {
+      min-height: 212px;
+      color: var(--text);
+      text-decoration: none;
       border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: clamp(7px, 2.3vw, 14px);
-      background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+      border-radius: 28px;
+      padding: 22px;
+      background: linear-gradient(180deg, var(--panel-2), var(--panel));
       box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-    }
-
-    .board {
       display: grid;
-      grid-template-columns: repeat(9, minmax(0, 1fr));
-      gap: clamp(3px, 1.2vw, 7px);
-      user-select: none;
-      touch-action: manipulation;
-    }
-
-    .cell {
-      appearance: none;
-      border: 1px solid rgba(7, 17, 31, .12);
-      border-radius: clamp(8px, 2.6vw, 15px);
-      aspect-ratio: 1 / 1;
-      min-width: 0;
-      padding: 0;
-      background: var(--cell);
-      color: var(--cell-ink);
-      font: 950 clamp(1rem, 6.4vw, 2.35rem) / 1 ui-sans-serif, system-ui, sans-serif;
-      display: grid;
-      place-items: center;
-      cursor: pointer;
+      align-content: space-between;
+      gap: 22px;
+      text-align: left;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 -4px 0 rgba(7, 17, 31, .10);
-      transition: transform .08s ease, background .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease;
+      transition: transform .12s ease, border-color .16s ease, background .16s ease;
     }
 
-    .cell:active { transform: scale(.95); }
-    .cell:focus-visible { outline: 3px solid rgba(250, 204, 21, .9); outline-offset: 2px; }
-
-    .cell.blank {
-      background: var(--blank);
-      border-color: rgba(255, 255, 255, .11);
-      box-shadow: none;
-      cursor: default;
-    }
-
-    .cell.marked {
-      background: var(--marked);
-      color: var(--marked-ink);
-      border-color: rgba(187, 247, 208, .75);
-      box-shadow: inset 0 -4px 0 rgba(5, 46, 22, .16), 0 0 0 1px rgba(34, 197, 94, .20);
-    }
-
-    .cell.marked::after {
-      content: "✓";
+    .choice::after {
+      content: "";
       position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      color: rgba(5, 46, 22, .20);
-      font-size: clamp(2rem, 12.5vw, 4.7rem);
-      transform: rotate(-12deg);
+      right: -42px;
+      bottom: -54px;
+      width: 154px;
+      height: 154px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .08);
       pointer-events: none;
     }
 
-    .cell.line-win {
-      box-shadow: inset 0 -4px 0 rgba(5, 46, 22, .16), 0 0 0 2px rgba(250, 204, 21, .88);
-    }
+    .choice:active { transform: scale(.99); }
+    .choice:hover { border-color: rgba(255,255,255,.32); background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.10)); }
 
-    .actions {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      padding: 10px max(8px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
-      background: linear-gradient(180deg, transparent, rgba(7, 17, 31, .76) 22%, rgba(7, 17, 31, .96));
-      z-index: 10;
-    }
-
-    .actions-inner {
-      width: min(100%, 620px);
-      margin: 0 auto;
+    .icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 19px;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .action {
-      min-height: 50px;
+      place-items: center;
+      font-size: 2rem;
+      background: rgba(255, 255, 255, .12);
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 0 8px;
-      color: var(--text);
-      background: rgba(255, 255, 255, .13);
-      font: 900 clamp(.78rem, 3.5vw, .98rem) / 1.05 ui-sans-serif, system-ui, sans-serif;
-      cursor: pointer;
-      box-shadow: 0 12px 26px rgba(0, 0, 0, .22);
-      backdrop-filter: blur(18px);
     }
 
-    .action.primary { background: var(--marked); color: var(--marked-ink); border-color: rgba(187, 247, 208, .50); }
-    .action.danger { background: rgba(239, 68, 68, .22); color: #fee2e2; }
-    .action:active { transform: translateY(1px) scale(.99); }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: calc(78px + env(safe-area-inset-bottom));
-      translate: -50% 18px;
-      opacity: 0;
-      z-index: 30;
-      pointer-events: none;
-      border-radius: 999px;
-      padding: 11px 15px;
-      background: rgba(248, 250, 252, .96);
-      color: #07111f;
-      font-weight: 850;
-      font-size: .92rem;
-      box-shadow: 0 18px 36px rgba(0, 0, 0, .28);
-      transition: opacity .18s ease, translate .18s ease;
-      white-space: nowrap;
+    .choice strong {
+      display: block;
+      font-size: clamp(1.35rem, 5.4vw, 2rem);
+      line-height: 1;
+      letter-spacing: -.045em;
+      font-weight: 950;
     }
 
-    .toast.show { opacity: 1; translate: -50% 0; }
-
-    .celebration {
-      position: fixed;
-      inset: 0;
-      display: none;
-      place-items: center;
-      z-index: 20;
-      pointer-events: none;
-      overflow: hidden;
-      background: radial-gradient(circle, rgba(250, 204, 21, .16), rgba(7, 17, 31, .10) 42%, transparent 68%);
+    .choice span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-weight: 750;
+      line-height: 1.3;
     }
 
-    .celebration.show { display: grid; animation: fadeOut 1.75s ease forwards; }
+    .choice.primary .icon { background: var(--accent); color: var(--accent-ink); }
+    .choice.secondary .icon { background: var(--blue); color: #082f49; }
 
-    .celebration-word {
-      font-size: clamp(3.7rem, 22vw, 9rem);
-      font-weight: 1000;
-      letter-spacing: -.08em;
-      text-shadow: 0 12px 34px rgba(0, 0, 0, .45);
-      animation: pop .86s cubic-bezier(.12, 1.7, .22, 1) both;
+    footer {
+      color: rgba(183, 196, 216, .75);
+      font-size: .9rem;
+      font-weight: 700;
     }
 
-    .piece {
-      position: absolute;
-      top: -18px;
-      width: 9px;
-      height: 16px;
-      border-radius: 4px;
-      opacity: .95;
-      animation: fall 1.65s linear forwards;
-    }
-
-    @keyframes pop {
-      0% { transform: scale(.38) rotate(-8deg); opacity: 0; }
-      58% { transform: scale(1.08) rotate(1deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0); opacity: 1; }
-    }
-
-    @keyframes fall {
-      to { transform: translateY(110vh) rotate(740deg); opacity: .2; }
-    }
-
-    @keyframes fadeOut {
-      0%, 72% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-
-    /* Layout compacto para celular deitado. O botão apenas define preferência; o layout só entra quando há largura suficiente. */
-    html.is-landscape-layout,
-    html.is-landscape-layout body {
-      height: 100%;
-    }
-
-    html.is-landscape-layout body {
-      min-height: 100dvh;
-      padding:
-        max(6px, env(safe-area-inset-top))
-        calc(142px + env(safe-area-inset-right))
-        max(6px, env(safe-area-inset-bottom))
-        max(6px, env(safe-area-inset-left));
-      align-items: center;
-      overflow: hidden;
-    }
-
-    html.is-landscape-layout main {
-      width: 100%;
-      max-width: none;
-      height: calc(100dvh - max(6px, env(safe-area-inset-top)) - max(6px, env(safe-area-inset-bottom)) - 2px);
-      display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
-      gap: 6px;
-    }
-
-    html.is-landscape-layout .topbar {
-      min-height: 32px;
-      place-items: center start;
-    }
-
-    html.is-landscape-layout h1 {
-      text-align: left;
-      padding-left: 3px;
-      font-size: clamp(1rem, 3.2vw, 1.55rem);
-      letter-spacing: -.04em;
-    }
-
-    html.is-landscape-layout .orientation-toggle {
-      right: 4px;
-      min-height: 28px;
-      padding-inline: 9px;
-      font-size: clamp(.6rem, 1.75vw, .72rem);
-    }
-
-    html.is-landscape-layout .stats {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-    }
-
-    html.is-landscape-layout .chip {
-      min-height: 36px;
-      border-radius: 12px;
-      padding: 4px 5px;
-    }
-
-    html.is-landscape-layout .chip span {
-      font-size: clamp(.48rem, 1.55vw, .62rem);
-      letter-spacing: .045em;
-    }
-
-    html.is-landscape-layout .chip strong {
-      margin-top: 3px;
-      font-size: clamp(.86rem, 2.75vw, 1.08rem);
-    }
-
-    html.is-landscape-layout .board-shell {
-      min-height: 0;
-      height: 100%;
-      border-radius: 16px;
-      padding: clamp(4px, 1.3vh, 8px);
-    }
-
-    html.is-landscape-layout .board {
-      height: 100%;
-      grid-template-rows: repeat(3, minmax(0, 1fr));
-      gap: clamp(3px, 1.2vh, 6px);
-    }
-
-    html.is-landscape-layout .cell {
-      aspect-ratio: auto;
-      min-height: 0;
-      border-radius: clamp(8px, 2vh, 13px);
-      font-size: clamp(1.15rem, 10vh, 2.85rem);
-      box-shadow: inset 0 -3px 0 rgba(7, 17, 31, .10);
-    }
-
-    html.is-landscape-layout .cell.marked::after {
-      font-size: clamp(2.05rem, 17vh, 4.8rem);
-    }
-
-    html.is-landscape-layout .actions {
-      left: auto;
-      right: max(6px, env(safe-area-inset-right));
-      top: max(6px, env(safe-area-inset-top));
-      bottom: max(6px, env(safe-area-inset-bottom));
-      width: min(132px, 20vw);
-      padding: 0;
-      background: none;
-      display: grid;
-      align-items: stretch;
-    }
-
-    html.is-landscape-layout .actions-inner {
-      width: 100%;
-      height: 100%;
-      grid-template-columns: 1fr;
-      grid-template-rows: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-    }
-
-    html.is-landscape-layout .action {
-      min-height: 0;
-      height: 100%;
-      border-radius: 13px;
-      padding: 0 6px;
-      font-size: clamp(.68rem, 2.05vw, .88rem);
-    }
-
-    html.is-landscape-layout .toast {
-      bottom: max(10px, env(safe-area-inset-bottom));
-    }
-
-    @media (orientation: landscape) and (max-height: 560px) {
-      html:not(.force-portrait) {
-        color-scheme: dark;
-      }
-    }
-
-    @media (max-height: 390px) and (orientation: landscape) {
-      html.is-landscape-layout body {
-        padding-right: calc(124px + env(safe-area-inset-right));
-      }
-
-      html.is-landscape-layout .actions { width: min(116px, 19vw); }
-      html.is-landscape-layout .chip { min-height: 32px; }
-      html.is-landscape-layout .board-shell { border-radius: 14px; padding: 4px; }
-      html.is-landscape-layout .cell { font-size: clamp(1.05rem, 9.5vh, 2.4rem); }
-    }
-
-    @media (max-width: 380px) {
-      body { padding-left: 6px; padding-right: 6px; }
-      .stats { gap: 6px; }
-      .chip { min-height: 48px; border-radius: 14px; padding-inline: 5px; }
-      .board-shell { border-radius: 18px; padding: 6px; }
-      .board { gap: 3px; }
-      .action { min-height: 48px; border-radius: 14px; }
-    }
-
-    @media (min-width: 720px) {
-      body { padding-bottom: 110px; }
-      .cell { font-size: clamp(1.4rem, 4vw, 2.5rem); }
+    @media (max-width: 620px) {
+      .choices { grid-template-columns: 1fr; }
+      .choice { min-height: 172px; border-radius: 24px; }
     }
   </style>
 </head>
 <body>
   <main>
-    <div class="topbar">
-      <h1>Cartela de Bingo</h1>
-      <button class="orientation-toggle" id="orientationToggle" type="button" aria-label="Alternar modo de tela">↔ Paisagem</button>
-    </div>
+    <header>
+      <h1>Bingo em Casa</h1>
+      <p class="subtitle">Escolha como vai brincar</p>
+    </header>
 
-    <section class="stats" aria-live="polite" aria-label="Resumo da cartela">
-      <div class="chip" id="markedChip"><span>Marcados</span><strong id="markedCount">0/15</strong></div>
-      <div class="chip" id="lineChip"><span>Linha</span><strong id="lineCount">0</strong></div>
-      <div class="chip" id="bingoChip"><span>Bingo</span><strong id="bingoState">Não</strong></div>
+    <section class="choices" aria-label="Opções do bingo">
+      <a class="choice primary" href="sorteador.html" aria-label="Abrir sorteador de bingo">
+        <div class="icon">🎲</div>
+        <div>
+          <strong>Sorteador</strong>
+          <span>Para quem vai chamar os números.</span>
+        </div>
+      </a>
+
+      <a class="choice secondary" href="cartela.html" aria-label="Abrir cartela de bingo">
+        <div class="icon">▦</div>
+        <div>
+          <strong>Cartela</strong>
+          <span>Para marcar os números no celular.</span>
+        </div>
+      </a>
     </section>
 
-    <section class="board-shell" aria-label="Cartela de bingo">
-      <div id="board" class="board"></div>
-    </section>
   </main>
-
-  <nav class="actions" aria-label="Ações da cartela">
-    <div class="actions-inner">
-      <button class="action primary" id="copyLink" type="button">Copiar link</button>
-      <button class="action" id="clearMarks" type="button">Limpar</button>
-      <button class="action danger" id="newCard" type="button">Nova</button>
-    </div>
-  </nav>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <div class="celebration" id="celebration" aria-hidden="true"><div class="celebration-word" id="celebrationWord">BINGO!</div></div>
-
-  <script>
-    const STORAGE_KEY = 'cartela-bingo-90:v3';
-    const boardEl = document.getElementById('board');
-    const toastEl = document.getElementById('toast');
-    const markedCountEl = document.getElementById('markedCount');
-    const lineCountEl = document.getElementById('lineCount');
-    const bingoStateEl = document.getElementById('bingoState');
-    const markedChipEl = document.getElementById('markedChip');
-    const lineChipEl = document.getElementById('lineChip');
-    const bingoChipEl = document.getElementById('bingoChip');
-    const celebrationEl = document.getElementById('celebration');
-    const celebrationWordEl = document.getElementById('celebrationWord');
-    const orientationToggleEl = document.getElementById('orientationToggle');
-    const LAYOUT_STORAGE_KEY = 'cartela-bingo-90:layout';
-
-    let layoutPreference = localStorage.getItem(LAYOUT_STORAGE_KEY) || 'auto';
-    let state = readStateFromHash() || readStateFromStorage() || createState();
-    let lastCompletedRows = countCompletedRows(state);
-    let lastFullCard = isFullCard(state);
-
-    normalizeState(state);
-    saveState();
-    render();
-    applyLayoutPreference();
-
-    window.addEventListener('resize', applyLayoutPreference);
-    window.addEventListener('orientationchange', () => setTimeout(applyLayoutPreference, 160));
-    orientationToggleEl.addEventListener('click', toggleOrientationPreference);
-
-    document.getElementById('copyLink').addEventListener('click', copyCurrentLink);
-    document.getElementById('clearMarks').addEventListener('click', () => {
-      state.marked = [];
-      state.updatedAt = new Date().toISOString();
-      lastCompletedRows = 0;
-      lastFullCard = false;
-      saveState();
-      render();
-      showToast('Marcações limpas');
-    });
-    document.getElementById('newCard').addEventListener('click', () => {
-      state = createState();
-      lastCompletedRows = 0;
-      lastFullCard = false;
-      saveState();
-      clearHash();
-      render();
-      showToast('Nova cartela');
-    });
-
-    window.addEventListener('hashchange', () => {
-      const shared = readStateFromHash();
-      if (!shared) return;
-      state = shared;
-      normalizeState(state);
-      lastCompletedRows = countCompletedRows(state);
-      lastFullCard = isFullCard(state);
-      saveState();
-      render();
-      showToast('Cartela carregada');
-    });
-
-    function isCompactLandscape() {
-      return window.innerWidth > window.innerHeight && window.innerHeight <= 620 && window.innerWidth <= 1180;
-    }
-
-    function applyLayoutPreference() {
-      const useLandscape = layoutPreference !== 'portrait' && isCompactLandscape();
-      document.documentElement.classList.toggle('is-landscape-layout', useLandscape);
-      document.documentElement.classList.toggle('force-portrait', layoutPreference === 'portrait');
-
-      if (layoutPreference === 'portrait') {
-        orientationToggleEl.textContent = '↔ Paisagem';
-        orientationToggleEl.classList.remove('active');
-      } else if (useLandscape) {
-        orientationToggleEl.textContent = '↕ Retrato';
-        orientationToggleEl.classList.add('active');
-      } else {
-        orientationToggleEl.textContent = '↔ Paisagem';
-        orientationToggleEl.classList.toggle('active', layoutPreference === 'landscape');
-      }
-    }
-
-    async function toggleOrientationPreference() {
-      const usingLandscape = document.documentElement.classList.contains('is-landscape-layout');
-
-      if (usingLandscape || layoutPreference === 'landscape') {
-        layoutPreference = 'portrait';
-        localStorage.setItem(LAYOUT_STORAGE_KEY, layoutPreference);
-        await tryLockOrientation('portrait-primary');
-        if (document.fullscreenElement && document.exitFullscreen) {
-          try { await document.exitFullscreen(); } catch {}
-        }
-        applyLayoutPreference();
-        showToast('Modo retrato');
-        return;
-      }
-
-      layoutPreference = 'landscape';
-      localStorage.setItem(LAYOUT_STORAGE_KEY, layoutPreference);
-      const locked = await tryLockOrientation('landscape');
-      applyLayoutPreference();
-
-      setTimeout(() => {
-        applyLayoutPreference();
-        if (document.documentElement.classList.contains('is-landscape-layout')) {
-          showToast('Modo paisagem');
-        } else {
-          showToast(locked ? 'Modo paisagem ativado' : 'Gire o celular para paisagem');
-        }
-      }, 360);
-    }
-
-    async function tryLockOrientation(orientation) {
-      if (!screen.orientation || !screen.orientation.lock) return false;
-
-      try {
-        const shouldUseFullscreen = matchMedia('(pointer: coarse)').matches && document.documentElement.requestFullscreen;
-        if (shouldUseFullscreen && !document.fullscreenElement) {
-          try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch {}
-        }
-        await screen.orientation.lock(orientation);
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
-    function createState() {
-      return {
-        v: 3,
-        id: Math.random().toString(36).slice(2, 8).toUpperCase(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        card: generate90Card(),
-        marked: []
-      };
-    }
-
-    function normalizeState(value) {
-      if (!value || !Array.isArray(value.card) || value.card.length !== 3) {
-        state = createState();
-        return;
-      }
-      const validCard = value.card.every(row => Array.isArray(row) && row.length === 9);
-      if (!validCard) {
-        state = createState();
-        return;
-      }
-      const cardNumbers = new Set(value.card.flat().filter(num => Number.isInteger(num)));
-      value.marked = Array.isArray(value.marked)
-        ? [...new Set(value.marked.map(Number).filter(num => cardNumbers.has(num)))]
-        : [];
-      value.v = 3;
-      value.id = value.id || Math.random().toString(36).slice(2, 8).toUpperCase();
-      value.createdAt = value.createdAt || new Date().toISOString();
-      value.updatedAt = value.updatedAt || new Date().toISOString();
-    }
-
-    function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    function readStateFromStorage() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch {
-        return null;
-      }
-    }
-
-    function readStateFromHash() {
-      const match = location.hash.match(/^#b=(.+)$/);
-      if (!match) return null;
-      try {
-        const json = base64UrlDecode(match[1]);
-        const parsed = JSON.parse(json);
-        return parsed && Array.isArray(parsed.card) ? parsed : null;
-      } catch {
-        showToast('Link inválido');
-        return null;
-      }
-    }
-
-    function stateToHash() {
-      const payload = {
-        v: 3,
-        id: state.id,
-        createdAt: state.createdAt,
-        updatedAt: new Date().toISOString(),
-        card: state.card,
-        marked: state.marked
-      };
-      return '#b=' + base64UrlEncode(JSON.stringify(payload));
-    }
-
-    function base64UrlEncode(text) {
-      return btoa(text).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-    }
-
-    function base64UrlDecode(text) {
-      const padded = text.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((text.length + 3) % 4);
-      return atob(padded);
-    }
-
-    function clearHash() {
-      if (!location.hash) return;
-      history.replaceState(null, '', location.pathname + location.search);
-    }
-
-    function range(start, end) {
-      return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    }
-
-    function shuffle(array) {
-      const copy = [...array];
-      for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy;
-    }
-
-    function sample(values, count) {
-      return shuffle(values).slice(0, count);
-    }
-
-    function generate90Card() {
-      for (let attempt = 0; attempt < 4000; attempt++) {
-        const columnCounts = generateColumnCounts();
-        const positions = placeNumbers(columnCounts);
-        if (!positions) continue;
-
-        const card = Array.from({ length: 3 }, () => Array(9).fill(null));
-        for (let col = 0; col < 9; col++) {
-          const rows = [0, 1, 2].filter(row => positions[row][col]);
-          const start = col === 0 ? 1 : col * 10;
-          const end = col === 8 ? 90 : col * 10 + 9;
-          const numbers = sample(range(start, end), rows.length).sort((a, b) => a - b);
-          rows.forEach((row, index) => card[row][col] = numbers[index]);
-        }
-        return card;
-      }
-      throw new Error('Não foi possível gerar cartela.');
-    }
-
-    function generateColumnCounts() {
-      const counts = Array(9).fill(1);
-      let extras = 6;
-      while (extras > 0) {
-        const candidates = counts.map((count, index) => count < 3 ? index : null).filter(index => index !== null);
-        const col = candidates[Math.floor(Math.random() * candidates.length)];
-        counts[col]++;
-        extras--;
-      }
-      return counts;
-    }
-
-    function placeNumbers(columnCounts) {
-      for (let attempt = 0; attempt < 600; attempt++) {
-        const positions = Array.from({ length: 3 }, () => Array(9).fill(false));
-        const rowCounts = [0, 0, 0];
-        const columns = [];
-        columnCounts.forEach((count, col) => {
-          for (let i = 0; i < count; i++) columns.push(col);
-        });
-
-        let failed = false;
-        for (const col of shuffle(columns)) {
-          const candidates = [0, 1, 2]
-            .filter(row => rowCounts[row] < 5 && !positions[row][col])
-            .sort((a, b) => rowCounts[a] - rowCounts[b] || Math.random() - .5);
-
-          if (!candidates.length) {
-            failed = true;
-            break;
-          }
-          const row = candidates[0];
-          positions[row][col] = true;
-          rowCounts[row]++;
-        }
-
-        if (!failed && rowCounts.every(count => count === 5)) return positions;
-      }
-      return null;
-    }
-
-    function render() {
-      boardEl.innerHTML = '';
-      const completeRows = getCompletedRows(state);
-
-      state.card.forEach((row, rowIndex) => {
-        row.forEach((value, colIndex) => {
-          const cell = document.createElement(value === null ? 'div' : 'button');
-          cell.className = 'cell';
-
-          if (value === null) {
-            cell.classList.add('blank');
-            cell.setAttribute('aria-hidden', 'true');
-          } else {
-            cell.type = 'button';
-            cell.textContent = value;
-            cell.setAttribute('aria-label', `Número ${value}`);
-            cell.setAttribute('aria-pressed', isMarked(value) ? 'true' : 'false');
-            if (isMarked(value)) cell.classList.add('marked');
-            if (completeRows.includes(rowIndex) && isMarked(value)) cell.classList.add('line-win');
-            cell.addEventListener('click', () => toggleNumber(value));
-          }
-
-          boardEl.appendChild(cell);
-        });
-      });
-
-      renderStats(completeRows.length, isFullCard(state));
-    }
-
-    function renderStats(completedRows, fullCard) {
-      const totalMarked = state.marked.length;
-      markedCountEl.textContent = `${totalMarked}/15`;
-      lineCountEl.textContent = completedRows > 0 ? String(completedRows) : '0';
-      bingoStateEl.textContent = fullCard ? 'Sim' : 'Não';
-
-      markedChipEl.classList.toggle('win', totalMarked > 0);
-      lineChipEl.classList.toggle('win', completedRows > 0);
-      bingoChipEl.classList.toggle('bingo', fullCard);
-    }
-
-    function toggleNumber(value) {
-      const beforeRows = countCompletedRows(state);
-      const beforeFull = isFullCard(state);
-      const next = new Set(state.marked);
-
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-
-      state.marked = [...next].sort((a, b) => a - b);
-      state.updatedAt = new Date().toISOString();
-      saveState();
-      render();
-
-      const afterRows = countCompletedRows(state);
-      const afterFull = isFullCard(state);
-
-      if (afterFull && !beforeFull && !lastFullCard) {
-        celebrate('BINGO!');
-      } else if (afterRows > beforeRows && afterRows > lastCompletedRows) {
-        celebrate('LINHA!');
-      }
-
-      lastCompletedRows = afterRows;
-      lastFullCard = afterFull;
-    }
-
-    function isMarked(value) {
-      return state.marked.includes(value);
-    }
-
-    function getCompletedRows(currentState) {
-      return currentState.card
-        .map((row, rowIndex) => {
-          const rowNumbers = row.filter(value => value !== null);
-          const completed = rowNumbers.length > 0 && rowNumbers.every(value => currentState.marked.includes(value));
-          return completed ? rowIndex : null;
-        })
-        .filter(rowIndex => rowIndex !== null);
-    }
-
-    function countCompletedRows(currentState) {
-      return getCompletedRows(currentState).length;
-    }
-
-    function isFullCard(currentState) {
-      const allNumbers = currentState.card.flat().filter(value => value !== null);
-      return allNumbers.length === 15 && allNumbers.every(value => currentState.marked.includes(value));
-    }
-
-    async function copyCurrentLink() {
-      const url = new URL(location.href);
-      url.hash = stateToHash();
-      const link = url.toString();
-
-      try {
-        await navigator.clipboard.writeText(link);
-        showToast('Link copiado');
-      } catch {
-        fallbackCopy(link);
-      }
-    }
-
-    function fallbackCopy(text) {
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.setAttribute('readonly', '');
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand('copy');
-        showToast('Link copiado');
-      } catch {
-        showToast('Não foi possível copiar');
-      }
-      textarea.remove();
-    }
-
-    function showToast(message) {
-      toastEl.textContent = message;
-      toastEl.classList.add('show');
-      clearTimeout(showToast.timer);
-      showToast.timer = setTimeout(() => toastEl.classList.remove('show'), 1750);
-    }
-
-    function celebrate(word) {
-      celebrationWordEl.textContent = word;
-      celebrationEl.classList.remove('show');
-      celebrationEl.querySelectorAll('.piece').forEach(piece => piece.remove());
-
-      const colors = ['#22c55e', '#facc15', '#38bdf8', '#fb7185', '#a78bfa', '#f97316'];
-      for (let i = 0; i < 42; i++) {
-        const piece = document.createElement('i');
-        piece.className = 'piece';
-        piece.style.left = `${Math.random() * 100}%`;
-        piece.style.background = colors[i % colors.length];
-        piece.style.animationDelay = `${Math.random() * .45}s`;
-        piece.style.transform = `rotate(${Math.random() * 180}deg)`;
-        celebrationEl.appendChild(piece);
-      }
-
-      void celebrationEl.offsetWidth;
-      celebrationEl.classList.add('show');
-      clearTimeout(celebrate.timer);
-      celebrate.timer = setTimeout(() => celebrationEl.classList.remove('show'), 1850);
-    }
-  </script>
 </body>
 </html>
