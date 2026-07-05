@@ -61,17 +61,15 @@
     }
 
     .topbar {
-      position: relative;
       display: grid;
-      place-items: center;
+      grid-template-columns: 76px minmax(0, 1fr) 102px;
+      align-items: center;
+      gap: 7px;
       min-height: 42px;
     }
 
+    .home,
     .orientation-toggle {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      translate: 0 -50%;
       min-height: 32px;
       border: 1px solid var(--line);
       border-radius: 999px;
@@ -86,12 +84,25 @@
       transition: opacity .16s ease, transform .08s ease, background .16s ease, color .16s ease;
     }
 
+    .home {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .orientation-toggle {
+      justify-self: end;
+    }
+
+    .home:hover,
     .orientation-toggle.active {
       opacity: 1;
       color: var(--text);
       background: rgba(255, 255, 255, .16);
     }
 
+    .home:active,
     .orientation-toggle:active { transform: scale(.98); }
 
     .stats {
@@ -340,21 +351,21 @@
 
     html.is-landscape-layout .topbar {
       min-height: 32px;
-      place-items: center start;
+      grid-template-columns: 62px minmax(0, 1fr) 96px;
+      gap: 5px;
     }
 
     html.is-landscape-layout h1 {
-      text-align: left;
-      padding-left: 3px;
+      text-align: center;
       font-size: clamp(1rem, 3.2vw, 1.55rem);
       letter-spacing: -.04em;
     }
 
+    html.is-landscape-layout .home,
     html.is-landscape-layout .orientation-toggle {
-      right: 4px;
       min-height: 28px;
-      padding-inline: 9px;
-      font-size: clamp(.6rem, 1.75vw, .72rem);
+      padding-inline: 8px;
+      font-size: clamp(.58rem, 1.75vw, .72rem);
     }
 
     html.is-landscape-layout .stats {
@@ -454,6 +465,8 @@
 
     @media (max-width: 380px) {
       body { padding-left: 6px; padding-right: 6px; }
+      .topbar { grid-template-columns: 62px minmax(0, 1fr) 92px; gap: 5px; }
+      .home, .orientation-toggle { min-height: 30px; padding-inline: 7px; font-size: .66rem; }
       .stats { gap: 6px; }
       .chip { min-height: 48px; border-radius: 14px; padding-inline: 5px; }
       .board-shell { border-radius: 18px; padding: 6px; }
@@ -470,6 +483,7 @@
 <body>
   <main>
     <div class="topbar">
+      <a class="home" href="index.html">Início</a>
       <h1>Cartela de Bingo</h1>
       <button class="orientation-toggle" id="orientationToggle" type="button" aria-label="Alternar modo de tela">↔ Paisagem</button>
     </div>

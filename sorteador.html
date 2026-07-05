@@ -50,7 +50,7 @@
     .topbar {
       min-height: 42px;
       display: grid;
-      grid-template-columns: 78px 1fr 78px;
+      grid-template-columns: 78px minmax(0, 1fr) 104px;
       align-items: center;
       gap: 8px;
     }
@@ -239,6 +239,34 @@
     button:hover { filter: brightness(1.06); border-color: rgba(255,255,255,.30); }
     button:disabled { opacity: .52; cursor: not-allowed; transform: none; }
 
+    .orientation-toggle {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 10px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .09);
+      font: 900 clamp(.66rem, 2.8vw, .8rem) / 1 ui-sans-serif, system-ui, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .14);
+      backdrop-filter: blur(16px);
+      opacity: .72;
+      transition: opacity .16s ease, transform .08s ease, background .16s ease, color .16s ease;
+      justify-self: end;
+    }
+
+    .orientation-toggle.active,
+    .orientation-toggle:hover {
+      opacity: 1;
+      color: var(--text);
+      background: rgba(255, 255, 255, .16);
+    }
+
+    .orientation-toggle:active { transform: scale(.98); }
+
     .primary { background: var(--accent); color: var(--accent-ink); }
     .auto-on { background: var(--blue); color: #082f49; }
     .danger { background: var(--danger-soft); color: #fecaca; }
@@ -412,11 +440,11 @@
 
     @media (max-width: 560px) {
       body { padding-inline: 8px; }
-      .topbar { grid-template-columns: 62px 1fr 62px; }
+      .topbar { grid-template-columns: 62px minmax(0, 1fr) 92px; }
       .home { font-size: .72rem; padding-inline: 8px; }
       .stage, .history { border-radius: 22px; }
       .controls { grid-template-columns: 1fr; }
-      button { min-height: 52px; }
+      .controls button { min-height: 52px; }
       .mini-status { gap: 6px; }
       .chip { min-height: 50px; border-radius: 14px; }
       .grid { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 5px; }
@@ -424,24 +452,27 @@
     }
 
     @media (orientation: landscape) and (max-height: 560px) {
-      body { min-height: 100dvh; padding: 8px; }
-      main { gap: 8px; }
-      .topbar { min-height: 30px; grid-template-columns: 66px 1fr 66px; }
-      h1 { font-size: clamp(1.05rem, 4vw, 1.7rem); }
-      .layout { grid-template-columns: minmax(250px, 34vw) minmax(0, 1fr); gap: 8px; }
-      .stage, .history { padding: 8px; border-radius: 18px; gap: 8px; }
-      .ball-wrap { min-height: calc(100dvh - 170px); border-radius: 16px; }
-      .ball { width: min(30vw, 48vh); height: min(30vw, 48vh); font-size: clamp(3rem, 20vh, 5.6rem); }
-      .mini-status { gap: 5px; }
-      .chip { min-height: 35px; border-radius: 11px; padding: 4px; }
-      .chip span { font-size: .5rem; }
-      .chip strong { font-size: .8rem; margin-top: 3px; }
-      .controls { grid-template-columns: 1.25fr 1fr 1fr; gap: 5px; }
-      button { min-height: 42px; border-radius: 12px; font-size: .72rem; padding-inline: 6px; }
-      .sequence { min-height: 44px; padding: 7px; gap: 5px; }
-      .seq-num { min-width: 30px; height: 30px; font-size: .82rem; }
-      .grid { gap: 4px; }
-      .number { border-radius: 8px; font-size: clamp(.66rem, 2.3vh, .9rem); }
+      html:not(.force-portrait) body { min-height: 100dvh; padding: 8px; overflow: hidden; }
+      html:not(.force-portrait) main { gap: 8px; height: calc(100dvh - 16px); }
+      html:not(.force-portrait) .topbar { min-height: 30px; grid-template-columns: 66px minmax(0, 1fr) 96px; }
+      html:not(.force-portrait) .home,
+      html:not(.force-portrait) .orientation-toggle { min-height: 28px; padding-inline: 8px; font-size: .66rem; }
+      html:not(.force-portrait) h1 { font-size: clamp(1.05rem, 4vw, 1.7rem); }
+      html:not(.force-portrait) .layout { grid-template-columns: minmax(250px, 34vw) minmax(0, 1fr); gap: 8px; min-height: 0; }
+      html:not(.force-portrait) .stage,
+      html:not(.force-portrait) .history { padding: 8px; border-radius: 18px; gap: 8px; min-height: 0; }
+      html:not(.force-portrait) .ball-wrap { min-height: calc(100dvh - 170px); border-radius: 16px; }
+      html:not(.force-portrait) .ball { width: min(30vw, 48vh); height: min(30vw, 48vh); font-size: clamp(3rem, 20vh, 5.6rem); }
+      html:not(.force-portrait) .mini-status { gap: 5px; }
+      html:not(.force-portrait) .chip { min-height: 35px; border-radius: 11px; padding: 4px; }
+      html:not(.force-portrait) .chip span { font-size: .5rem; }
+      html:not(.force-portrait) .chip strong { font-size: .8rem; margin-top: 3px; }
+      html:not(.force-portrait) .controls { grid-template-columns: 1.25fr 1fr 1fr; gap: 5px; }
+      html:not(.force-portrait) .controls button { min-height: 42px; border-radius: 12px; font-size: .72rem; padding-inline: 6px; }
+      html:not(.force-portrait) .sequence { min-height: 44px; padding: 7px; gap: 5px; }
+      html:not(.force-portrait) .seq-num { min-width: 30px; height: 30px; font-size: .82rem; }
+      html:not(.force-portrait) .grid { gap: 4px; }
+      html:not(.force-portrait) .number { border-radius: 8px; font-size: clamp(.66rem, 2.3vh, .9rem); }
     }
   </style>
 </head>
@@ -450,7 +481,7 @@
     <div class="topbar">
       <a class="home" href="index.html">Início</a>
       <h1>Sorteador de Bingo</h1>
-      <span aria-hidden="true"></span>
+      <button class="orientation-toggle" id="orientationToggle" type="button" aria-label="Alternar modo de tela">↔ Paisagem</button>
     </div>
 
     <section class="layout" aria-label="Sorteador de bingo 90 bolas">
@@ -503,7 +534,10 @@
     const resetButtonEl = document.getElementById('resetButton');
     const toastEl = document.getElementById('toast');
     const finishEl = document.getElementById('finish');
+    const orientationToggleEl = document.getElementById('orientationToggle');
+    const LAYOUT_STORAGE_KEY = 'sorteador-bingo-90:layout';
 
+    let layoutPreference = localStorage.getItem(LAYOUT_STORAGE_KEY) || 'auto';
     let state = readState() || createState();
     let isRolling = false;
     let autoEnabled = false;
@@ -513,6 +547,11 @@
 
     normalizeState();
     render();
+    applyLayoutPreference();
+
+    window.addEventListener('resize', applyLayoutPreference);
+    window.addEventListener('orientationchange', () => setTimeout(applyLayoutPreference, 160));
+    orientationToggleEl.addEventListener('click', toggleOrientationPreference);
 
     drawButtonEl.addEventListener('click', () => drawNumber());
     autoButtonEl.addEventListener('click', toggleAuto);
@@ -521,6 +560,72 @@
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stopAuto(false);
     });
+
+    function isCompactLandscape() {
+      return window.innerWidth > window.innerHeight && window.innerHeight <= 620 && window.innerWidth <= 1180;
+    }
+
+    function applyLayoutPreference() {
+      const useLandscape = layoutPreference !== 'portrait' && isCompactLandscape();
+      document.documentElement.classList.toggle('is-landscape-layout', useLandscape);
+      document.documentElement.classList.toggle('force-portrait', layoutPreference === 'portrait');
+
+      if (layoutPreference === 'portrait') {
+        orientationToggleEl.textContent = '↔ Paisagem';
+        orientationToggleEl.classList.remove('active');
+      } else if (useLandscape) {
+        orientationToggleEl.textContent = '↕ Retrato';
+        orientationToggleEl.classList.add('active');
+      } else {
+        orientationToggleEl.textContent = '↔ Paisagem';
+        orientationToggleEl.classList.toggle('active', layoutPreference === 'landscape');
+      }
+    }
+
+    async function toggleOrientationPreference() {
+      const usingLandscape = document.documentElement.classList.contains('is-landscape-layout');
+
+      if (usingLandscape || layoutPreference === 'landscape') {
+        layoutPreference = 'portrait';
+        localStorage.setItem(LAYOUT_STORAGE_KEY, layoutPreference);
+        await tryLockOrientation('portrait-primary');
+        if (document.fullscreenElement && document.exitFullscreen) {
+          try { await document.exitFullscreen(); } catch {}
+        }
+        applyLayoutPreference();
+        showToast('Modo retrato');
+        return;
+      }
+
+      layoutPreference = 'landscape';
+      localStorage.setItem(LAYOUT_STORAGE_KEY, layoutPreference);
+      const locked = await tryLockOrientation('landscape');
+      applyLayoutPreference();
+
+      setTimeout(() => {
+        applyLayoutPreference();
+        if (document.documentElement.classList.contains('is-landscape-layout')) {
+          showToast('Modo paisagem');
+        } else {
+          showToast(locked ? 'Modo paisagem ativado' : 'Gire o celular para paisagem');
+        }
+      }, 360);
+    }
+
+    async function tryLockOrientation(orientation) {
+      if (!screen.orientation || !screen.orientation.lock) return false;
+
+      try {
+        const shouldUseFullscreen = matchMedia('(pointer: coarse)').matches && document.documentElement.requestFullscreen;
+        if (shouldUseFullscreen && !document.fullscreenElement) {
+          try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch {}
+        }
+        await screen.orientation.lock(orientation);
+        return true;
+      } catch {
+        return false;
+      }
+    }
 
     function createState() {
       return {
