@@ -60,6 +60,40 @@
       text-wrap: balance;
     }
 
+    .topbar {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 42px;
+    }
+
+    .orientation-toggle {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      translate: 0 -50%;
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 10px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .09);
+      font: 900 clamp(.66rem, 2.8vw, .8rem) / 1 ui-sans-serif, system-ui, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .14);
+      backdrop-filter: blur(16px);
+      opacity: .72;
+      transition: opacity .16s ease, transform .08s ease, background .16s ease, color .16s ease;
+    }
+
+    .orientation-toggle.active {
+      opacity: 1;
+      color: var(--text);
+      background: rgba(255, 255, 255, .16);
+    }
+
+    .orientation-toggle:active { transform: scale(.98); }
+
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -277,6 +311,147 @@
       100% { opacity: 0; }
     }
 
+
+    /* Layout compacto para celular deitado. O botão apenas define preferência; o layout só entra quando há largura suficiente. */
+    html.is-landscape-layout,
+    html.is-landscape-layout body {
+      height: 100%;
+    }
+
+    html.is-landscape-layout body {
+      min-height: 100dvh;
+      padding:
+        max(6px, env(safe-area-inset-top))
+        calc(142px + env(safe-area-inset-right))
+        max(6px, env(safe-area-inset-bottom))
+        max(6px, env(safe-area-inset-left));
+      align-items: center;
+      overflow: hidden;
+    }
+
+    html.is-landscape-layout main {
+      width: 100%;
+      max-width: none;
+      height: calc(100dvh - max(6px, env(safe-area-inset-top)) - max(6px, env(safe-area-inset-bottom)) - 2px);
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 6px;
+    }
+
+    html.is-landscape-layout .topbar {
+      min-height: 32px;
+      place-items: center start;
+    }
+
+    html.is-landscape-layout h1 {
+      text-align: left;
+      padding-left: 3px;
+      font-size: clamp(1rem, 3.2vw, 1.55rem);
+      letter-spacing: -.04em;
+    }
+
+    html.is-landscape-layout .orientation-toggle {
+      right: 4px;
+      min-height: 28px;
+      padding-inline: 9px;
+      font-size: clamp(.6rem, 1.75vw, .72rem);
+    }
+
+    html.is-landscape-layout .stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    html.is-landscape-layout .chip {
+      min-height: 36px;
+      border-radius: 12px;
+      padding: 4px 5px;
+    }
+
+    html.is-landscape-layout .chip span {
+      font-size: clamp(.48rem, 1.55vw, .62rem);
+      letter-spacing: .045em;
+    }
+
+    html.is-landscape-layout .chip strong {
+      margin-top: 3px;
+      font-size: clamp(.86rem, 2.75vw, 1.08rem);
+    }
+
+    html.is-landscape-layout .board-shell {
+      min-height: 0;
+      height: 100%;
+      border-radius: 16px;
+      padding: clamp(4px, 1.3vh, 8px);
+    }
+
+    html.is-landscape-layout .board {
+      height: 100%;
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: clamp(3px, 1.2vh, 6px);
+    }
+
+    html.is-landscape-layout .cell {
+      aspect-ratio: auto;
+      min-height: 0;
+      border-radius: clamp(8px, 2vh, 13px);
+      font-size: clamp(1.15rem, 10vh, 2.85rem);
+      box-shadow: inset 0 -3px 0 rgba(7, 17, 31, .10);
+    }
+
+    html.is-landscape-layout .cell.marked::after {
+      font-size: clamp(2.05rem, 17vh, 4.8rem);
+    }
+
+    html.is-landscape-layout .actions {
+      left: auto;
+      right: max(6px, env(safe-area-inset-right));
+      top: max(6px, env(safe-area-inset-top));
+      bottom: max(6px, env(safe-area-inset-bottom));
+      width: min(132px, 20vw);
+      padding: 0;
+      background: none;
+      display: grid;
+      align-items: stretch;
+    }
+
+    html.is-landscape-layout .actions-inner {
+      width: 100%;
+      height: 100%;
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    html.is-landscape-layout .action {
+      min-height: 0;
+      height: 100%;
+      border-radius: 13px;
+      padding: 0 6px;
+      font-size: clamp(.68rem, 2.05vw, .88rem);
+    }
+
+    html.is-landscape-layout .toast {
+      bottom: max(10px, env(safe-area-inset-bottom));
+    }
+
+    @media (orientation: landscape) and (max-height: 560px) {
+      html:not(.force-portrait) {
+        color-scheme: dark;
+      }
+    }
+
+    @media (max-height: 390px) and (orientation: landscape) {
+      html.is-landscape-layout body {
+        padding-right: calc(124px + env(safe-area-inset-right));
+      }
+
+      html.is-landscape-layout .actions { width: min(116px, 19vw); }
+      html.is-landscape-layout .chip { min-height: 32px; }
+      html.is-landscape-layout .board-shell { border-radius: 14px; padding: 4px; }
+      html.is-landscape-layout .cell { font-size: clamp(1.05rem, 9.5vh, 2.4rem); }
+    }
+
     @media (max-width: 380px) {
       body { padding-left: 6px; padding-right: 6px; }
       .stats { gap: 6px; }
@@ -294,7 +469,10 @@
 </head>
 <body>
   <main>
-    <h1>Cartela de Bingo</h1>
+    <div class="topbar">
+      <h1>Cartela de Bingo</h1>
+      <button class="orientation-toggle" id="orientationToggle" type="button" aria-label="Alternar modo de tela">↔ Paisagem</button>
+    </div>
 
     <section class="stats" aria-live="polite" aria-label="Resumo da cartela">
       <div class="chip" id="markedChip"><span>Marcados</span><strong id="markedCount">0/15</strong></div>
@@ -330,7 +508,10 @@
     const bingoChipEl = document.getElementById('bingoChip');
     const celebrationEl = document.getElementById('celebration');
     const celebrationWordEl = document.getElementById('celebrationWord');
+    const orientationToggleEl = document.getElementById('orientationToggle');
+    const LAYOUT_STORAGE_KEY = 'cartela-bingo-90:layout';
 
+    let layoutPreference = localStorage.getItem(LAYOUT_STORAGE_KEY) || 'auto';
     let state = readStateFromHash() || readStateFromStorage() || createState();
     let lastCompletedRows = countCompletedRows(state);
     let lastFullCard = isFullCard(state);
@@ -338,6 +519,11 @@
     normalizeState(state);
     saveState();
     render();
+    applyLayoutPreference();
+
+    window.addEventListener('resize', applyLayoutPreference);
+    window.addEventListener('orientationchange', () => setTimeout(applyLayoutPreference, 160));
+    orientationToggleEl.addEventListener('click', toggleOrientationPreference);
 
     document.getElementById('copyLink').addEventListener('click', copyCurrentLink);
     document.getElementById('clearMarks').addEventListener('click', () => {
@@ -370,6 +556,72 @@
       render();
       showToast('Cartela carregada');
     });
+
+    function isCompactLandscape() {
+      return window.innerWidth > window.innerHeight && window.innerHeight <= 620 && window.innerWidth <= 1180;
+    }
+
+    function applyLayoutPreference() {
+      const useLandscape = layoutPreference !== 'portrait' && isCompactLandscape();
+      document.documentElement.classList.toggle('is-landscape-layout', useLandscape);
+      document.documentElement.classList.toggle('force-portrait', layoutPreference === 'portrait');
+
+      if (layoutPreference === 'portrait') {
+        orientationToggleEl.textContent = '↔ Paisagem';
+        orientationToggleEl.classList.remove('active');
+      } else if (useLandscape) {
+        orientationToggleEl.textContent = '↕ Retrato';
+        orientationToggleEl.classList.add('active');
+      } else {
+        orientationToggleEl.textContent = '↔ Paisagem';
+        orientationToggleEl.classList.toggle('active', layoutPreference === 'landscape');
+      }
+    }
+
+    async function toggleOrientationPreference() {
+      const usingLandscape = document.documentElement.classList.contains('is-landscape-layout');
+
+      if (usingLandscape || layoutPreference === 'landscape') {
+        layoutPreference = 'portrait';
+        localStorage.setItem(LAYOUT_STORAGE_KEY, layoutPreference);
+        await tryLockOrientation('portrait-primary');
+        if (document.fullscreenElement && document.exitFullscreen) {
+          try { await document.exitFullscreen(); } catch {}
+        }
+        applyLayoutPreference();
+        showToast('Modo retrato');
+        return;
+      }
+
+      layoutPreference = 'landscape';
+      localStorage.setItem(LAYOUT_STORAGE_KEY, layoutPreference);
+      const locked = await tryLockOrientation('landscape');
+      applyLayoutPreference();
+
+      setTimeout(() => {
+        applyLayoutPreference();
+        if (document.documentElement.classList.contains('is-landscape-layout')) {
+          showToast('Modo paisagem');
+        } else {
+          showToast(locked ? 'Modo paisagem ativado' : 'Gire o celular para paisagem');
+        }
+      }, 360);
+    }
+
+    async function tryLockOrientation(orientation) {
+      if (!screen.orientation || !screen.orientation.lock) return false;
+
+      try {
+        const shouldUseFullscreen = matchMedia('(pointer: coarse)').matches && document.documentElement.requestFullscreen;
+        if (shouldUseFullscreen && !document.fullscreenElement) {
+          try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch {}
+        }
+        await screen.orientation.lock(orientation);
+        return true;
+      } catch {
+        return false;
+      }
+    }
 
     function createState() {
       return {

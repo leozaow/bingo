@@ -1,35 +1,16 @@
 # Cartela de Bingo
 
-Cartela digital de bingo 90 bolas, feita para uso rápido em celulares.
+Cartela digital de bingo 90 bolas, responsiva, persistente e com modo paisagem/retrato.
 
-O projeto permite gerar uma cartela, marcar e desmarcar números com toque, limpar marcações, trocar a cartela e copiar um link com a cartela atual e suas marcações.
+## Arquivos
 
-## Funcionalidades
+- `index.html`: arquivo principal para GitHub Pages.
 
-- Cartela de bingo 90 bolas;
-- Layout responsivo para celular;
-- Marcação e desmarcação por toque;
-- Persistência local no navegador;
-- Contador de números marcados;
-- Indicação de linha completa;
-- Indicação de bingo;
-- Link compartilhável com a cartela e marcações atuais;
-- Sem cadastro, sem backend e sem instalação.
+## Recursos
 
-## Tecnologias
-
-- HTML
-- CSS
-- JavaScript
-- localStorage
-- GitHub Pages
-
-## Como usar
-
-Abra o site, toque nos números para marcar e toque novamente para desmarcar.
-
-Use o botão "Nova" para gerar outra cartela, "Limpar" para remover as marcações e "Copiar link" para compartilhar a cartela atual.
-
-## Licença
-
-MIT
+- Cartela 90 bolas.
+- Marcar e desmarcar números por toque.
+- Persistência local por navegador/dispositivo.
+- Link compartilhável com cartela e marcações no hash.
+- Contador de marcados, linha e bingo.
+- Botão discreto para preferência de modo paisagem/retrato.
