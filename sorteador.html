@@ -791,7 +791,7 @@
 
         <section class="controls" aria-label="Controles do sorteador">
           <button class="primary" id="drawButton" type="button">Sortear</button>
-          <button id="autoButton" type="button">Auto 7s</button>
+          <button id="autoButton" type="button">Auto 3s</button>
           <button class="danger" id="resetButton" type="button">Reiniciar</button>
         </section>
 
@@ -825,10 +825,22 @@
 
   <script>
     const STORAGE_KEY = 'sorteador-bingo-90:v1';
-    // Narração: pacote curto de frases especiais + reta final somente para números sem frase especial.
+    // Narração: MP3 especial -> MP3 básico -> voz do navegador.
+    // Roleta: efeito sonoro aleatório antes de revelar a bolinha.
     const TOTAL = 90;
-    const AUTO_SECONDS = 7;
+    // Contagem depois que a narração termina.
+    const AUTO_SECONDS = 3;
     const VOICE_STORAGE_KEY = 'sorteador-bingo-90:narracao';
+    const AUDIO_NARRATION_DIRS = ['especial', 'basico'];
+
+    // Efeitos da roleta. Deixe estes arquivos na mesma pasta do sorteador.html.
+    // Se preferir uma subpasta, altere para algo como: 'efeitos/sorteio_1.mp3'.
+    const DRAW_AUDIO_OPTIONS = [
+      { src: 'sorteio_1.mp3', durationMs: 5500 },
+      { src: 'sorteio_2.mp3', durationMs: 7500 },
+      { src: 'sorteio_3.mp3', durationMs: 10200 }
+    ];
+    const QUICK_DRAW_DURATION_MS = 900;
 
     const ballEl = document.getElementById('ball');
     const gridEl = document.getElementById('grid');
@@ -860,6 +872,11 @@
     let nextAutoAt = null;
     let narrationEnabled = localStorage.getItem(VOICE_STORAGE_KEY) !== 'off';
     let preferredVoice = null;
+    let currentNarrationAudio = null;
+    let currentDrawAudio = null;
+    let narrationAttemptId = 0;
+    let drawAttemptId = 0;
+    let isWaitingForNarration = false;
 
     normalizeState();
     render();
@@ -968,18 +985,15 @@
     }
 
     function toggleNarration() {
-      if (!('speechSynthesis' in window)) {
-        narrationEnabled = false;
-        localStorage.setItem(VOICE_STORAGE_KEY, 'off');
-        renderVoiceState();
-        showToast('Narração indisponível neste navegador');
-        return;
-      }
-
       narrationEnabled = !narrationEnabled;
       localStorage.setItem(VOICE_STORAGE_KEY, narrationEnabled ? 'on' : 'off');
-      if (!narrationEnabled) speechSynthesis.cancel();
-      loadPreferredVoice();
+
+      if (!narrationEnabled) {
+        stopAllAudio();
+      } else {
+        loadPreferredVoice();
+      }
+
       renderVoiceState();
       showToast(narrationEnabled ? 'Narração ligada' : 'Narração desligada');
     }
@@ -993,17 +1007,249 @@
     }
 
     function announceNumber(number) {
-      if (!narrationEnabled || !('speechSynthesis' in window)) return;
+      if (!narrationEnabled) return Promise.resolve();
+
+      const attemptId = ++narrationAttemptId;
+      stopCurrentNarration();
+
+      return playNumberAudio(number, attemptId).catch(() => {
+        if (attemptId !== narrationAttemptId || !narrationEnabled) return;
+        return speakFallbackNarration(number);
+      });
+    }
+
+    async function playNumberAudio(number, attemptId) {
+      const paths = AUDIO_NARRATION_DIRS.map(dir => `${dir}/${number}.mp3`);
+
+      for (const path of paths) {
+        if (attemptId !== narrationAttemptId || !narrationEnabled) {
+          throw new Error('Narração cancelada');
+        }
+
+        try {
+          await playNarrationAudioFile(path, attemptId);
+          return;
+        } catch {
+          // Tenta a próxima pasta. Ordem: especial -> basico -> fallback por voz do navegador.
+        }
+      }
+
+      throw new Error('Áudio MP3 não encontrado');
+    }
+
+    function playNarrationAudioFile(src, attemptId) {
+      return new Promise((resolve, reject) => {
+        const audio = new Audio(src);
+        let settled = false;
+        let startTimeout = null;
+        let safetyTimeout = null;
+
+        currentNarrationAudio = audio;
+        audio.preload = 'auto';
+        audio.volume = 1;
+
+        const cleanup = () => {
+          clearTimeout(startTimeout);
+          clearTimeout(safetyTimeout);
+          audio.removeEventListener('error', fail);
+          audio.removeEventListener('ended', finish);
+        };
+
+        const fail = () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+
+          if (currentNarrationAudio === audio) {
+            currentNarrationAudio.pause();
+            currentNarrationAudio = null;
+          }
+
+          reject(new Error(`Falha ao tocar ${src}`));
+        };
+
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          if (currentNarrationAudio === audio) currentNarrationAudio = null;
+          resolve(src);
+        };
+
+        const started = () => {
+          if (attemptId !== narrationAttemptId || !narrationEnabled) {
+            fail();
+            return;
+          }
+
+          clearTimeout(startTimeout);
+          const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration * 1000 : 6500;
+          safetyTimeout = setTimeout(finish, Math.max(2000, duration + 900));
+        };
+
+        audio.addEventListener('error', fail, { once: true });
+        audio.addEventListener('ended', finish, { once: true });
+
+        startTimeout = setTimeout(fail, 2500);
+
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+          playPromise.then(started).catch(fail);
+        } else {
+          setTimeout(started, 80);
+        }
+      });
+    }
+
+    function speakFallbackNarration(number) {
+      if (!('speechSynthesis' in window)) return Promise.resolve();
+
       loadPreferredVoice();
-      const text = buildNarration(number, state.sequence.length);
       speechSynthesis.cancel();
+
+      const text = buildNarration(number, state.sequence.length);
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'pt-BR';
-      utterance.rate = 1.03;
-      utterance.pitch = 1.06;
+      utterance.rate = 0.9;
+      utterance.pitch = 1.02;
       utterance.volume = 1;
+
       if (preferredVoice) utterance.voice = preferredVoice;
-      speechSynthesis.speak(utterance);
+
+      return new Promise(resolve => {
+        let settled = false;
+        const timeout = setTimeout(finish, estimateSpeechDurationMs(text));
+
+        function finish() {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          resolve();
+        }
+
+        utterance.onend = finish;
+        utterance.onerror = finish;
+        speechSynthesis.speak(utterance);
+      });
+    }
+
+    function estimateSpeechDurationMs(text) {
+      const words = String(text || '').trim().split(/\s+/).filter(Boolean).length;
+      return Math.max(2200, Math.min(7000, words * 360));
+    }
+
+    function stopCurrentNarration() {
+      if (currentNarrationAudio) {
+        try {
+          currentNarrationAudio.pause();
+          currentNarrationAudio.currentTime = 0;
+          currentNarrationAudio.removeAttribute('src');
+          currentNarrationAudio.load();
+        } catch {}
+        currentNarrationAudio = null;
+      }
+
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+      }
+    }
+
+    function stopCurrentDrawAudio() {
+      if (currentDrawAudio) {
+        try {
+          currentDrawAudio.pause();
+          currentDrawAudio.currentTime = 0;
+          currentDrawAudio.removeAttribute('src');
+          currentDrawAudio.load();
+        } catch {}
+        currentDrawAudio = null;
+      }
+    }
+
+    function stopAllAudio() {
+      stopCurrentDrawAudio();
+      stopCurrentNarration();
+    }
+
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function waitForDrawEffect(attemptId) {
+      if (!narrationEnabled) {
+        await delay(QUICK_DRAW_DURATION_MS);
+        return;
+      }
+
+      const option = pick(DRAW_AUDIO_OPTIONS);
+
+      try {
+        await playDrawAudioFile(option, attemptId);
+      } catch {
+        // Se o som da roleta falhar ou não existir, mantém o tempo para preservar a dinâmica visual.
+        await delay(option.durationMs);
+      }
+    }
+
+    function playDrawAudioFile(option, attemptId) {
+      return new Promise((resolve, reject) => {
+        const audio = new Audio(option.src);
+        let settled = false;
+        let startTimeout = null;
+        let safetyTimeout = null;
+
+        currentDrawAudio = audio;
+        audio.preload = 'auto';
+        audio.volume = 1;
+
+        const cleanup = () => {
+          clearTimeout(startTimeout);
+          clearTimeout(safetyTimeout);
+          audio.removeEventListener('error', fail);
+          audio.removeEventListener('ended', finish);
+        };
+
+        const fail = () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          if (currentDrawAudio === audio) {
+            currentDrawAudio.pause();
+            currentDrawAudio = null;
+          }
+          reject(new Error(`Falha ao tocar ${option.src}`));
+        };
+
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          if (currentDrawAudio === audio) currentDrawAudio = null;
+          resolve(option.src);
+        };
+
+        const started = () => {
+          if (attemptId !== drawAttemptId || !narrationEnabled) {
+            fail();
+            return;
+          }
+
+          clearTimeout(startTimeout);
+          safetyTimeout = setTimeout(finish, option.durationMs + 1000);
+        };
+
+        audio.addEventListener('error', fail, { once: true });
+        audio.addEventListener('ended', finish, { once: true });
+
+        startTimeout = setTimeout(fail, 1800);
+
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+          playPromise.then(started).catch(fail);
+        } else {
+          setTimeout(started, 80);
+        }
+      });
     }
 
     const SPECIAL_PHRASES = {
@@ -1157,8 +1403,8 @@
       return list;
     }
 
-    function drawNumber() {
-      if (isRolling) return;
+    async function drawNumber() {
+      if (isRolling || isWaitingForNarration) return;
 
       const available = availableNumbers();
       if (!available.length) {
@@ -1170,11 +1416,11 @@
       }
 
       isRolling = true;
+      const thisDrawAttempt = ++drawAttemptId;
       setButtonsState();
+      renderAutoState();
 
       const selected = available[Math.floor(Math.random() * available.length)];
-      const startedAt = Date.now();
-      const duration = 900;
 
       ballEl.classList.remove('empty', 'revealed', 'done');
       ballEl.classList.add('rolling');
@@ -1183,14 +1429,19 @@
         const pool = availableNumbers();
         const list = pool.length ? pool : available;
         ballEl.textContent = list[Math.floor(Math.random() * list.length)];
-        if (Date.now() - startedAt >= duration) {
-          clearInterval(spin);
-          revealNumber(selected);
-        }
       }, 58);
+
+      try {
+        await waitForDrawEffect(thisDrawAttempt);
+      } finally {
+        clearInterval(spin);
+      }
+
+      if (thisDrawAttempt !== drawAttemptId) return;
+      revealNumber(selected);
     }
 
-    function revealNumber(number) {
+    async function revealNumber(number) {
       state.sequence.push(number);
       state.current = number;
       state.updatedAt = new Date().toISOString();
@@ -1202,9 +1453,18 @@
       if (state.sequence.length === TOTAL) ballEl.classList.add('done');
 
       isRolling = false;
+      isWaitingForNarration = true;
       render();
       setButtonsState();
-      announceNumber(number);
+      renderAutoState();
+
+      try {
+        await announceNumber(number);
+      } finally {
+        isWaitingForNarration = false;
+        renderAutoState();
+        setButtonsState();
+      }
 
       if (state.sequence.length === TOTAL) {
         stopAuto(false);
@@ -1269,7 +1529,10 @@
     }
 
     function resetGame() {
-      if ('speechSynthesis' in window) speechSynthesis.cancel();
+      stopAllAudio();
+      drawAttemptId++;
+      narrationAttemptId++;
+      isWaitingForNarration = false;
       stopAuto(false);
       state = createState();
       saveState();
@@ -1309,15 +1572,23 @@
       if (!autoEnabled) {
         autoStateEl.textContent = 'Não';
         compactAutoStateEl.textContent = 'Não';
-        autoButtonEl.textContent = 'Auto 7s';
+        autoButtonEl.textContent = 'Auto 3s';
         autoButtonEl.classList.remove('auto-on');
         return;
       }
 
       autoButtonEl.classList.add('auto-on');
-      if (isRolling || !nextAutoAt) {
-        autoStateEl.textContent = 'Sim';
-        compactAutoStateEl.textContent = 'Sim';
+
+      if (isRolling) {
+        autoStateEl.textContent = 'Sorteio';
+        compactAutoStateEl.textContent = 'Sorteio';
+        autoButtonEl.textContent = 'Parar auto';
+        return;
+      }
+
+      if (isWaitingForNarration || !nextAutoAt) {
+        autoStateEl.textContent = 'Áudio';
+        compactAutoStateEl.textContent = 'Áudio';
         autoButtonEl.textContent = 'Parar auto';
         return;
       }
@@ -1379,8 +1650,9 @@
 
     function setButtonsState() {
       const finished = state.sequence.length >= TOTAL;
-      drawButtonEl.disabled = isRolling || finished;
-      autoButtonEl.disabled = isRolling && !autoEnabled;
+      const busy = isRolling || isWaitingForNarration;
+      drawButtonEl.disabled = busy || finished;
+      autoButtonEl.disabled = busy && !autoEnabled;
       resetButtonEl.disabled = isRolling;
     }
 
